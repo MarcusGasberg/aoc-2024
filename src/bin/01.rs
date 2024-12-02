@@ -5,7 +5,6 @@ use const_format::concatcp;
 use itertools::Itertools;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
-use std::usize;
 
 const DAY: &str = "01"; // TODO: Fill the day
 const INPUT_FILE: &str = concatcp!("input/", DAY, ".txt");
@@ -22,12 +21,8 @@ const TEST: &str = "\
 fn main() -> Result<()> {
     start_day(DAY);
 
-    //region Part 1
-    println!("=== Part 1 ===");
-
-    fn part1<R: BufRead>(reader: R) -> Result<usize> {
-        // TODO: Solve Part 1 of the puzzle
-        let answer = reader
+    fn get_lists<R: BufRead>(reader: R) -> (Vec<usize>, Vec<usize>) {
+        return reader
             .lines()
             .map_while(|line_res| {
                 let Result::Ok(line) = line_res else {
@@ -47,7 +42,13 @@ fn main() -> Result<()> {
 
                 acc
             });
-        let (mut left, mut right) = answer;
+    }
+
+    //region Part 1
+    println!("=== Part 1 ===");
+
+    fn part1<R: BufRead>(reader: R) -> Result<usize> {
+        let (mut left, mut right) = get_lists(reader);
 
         left.sort();
         right.sort();
@@ -65,17 +66,27 @@ fn main() -> Result<()> {
     //endregion
 
     //region Part 2
-    // println!("\n=== Part 2 ===");
-    //
-    // fn part2<R: BufRead>(reader: R) -> Result<usize> {
-    //     Ok(0)
-    // }
-    //
-    // assert_eq!(0, part2(BufReader::new(TEST.as_bytes()))?);
-    //
-    // let input_file = BufReader::new(File::open(INPUT_FILE)?);
-    // let result = time_snippet!(part2(input_file)?);
-    // println!("Result = {}", result);
+    println!("\n=== Part 2 ===");
+
+    fn part2<R: BufRead>(reader: R) -> Result<usize> {
+        let (left, right) = get_lists(reader);
+
+        let left_time_right_count = left.iter().map(|&val_left| {
+            val_left
+                * right
+                    .iter()
+                    .filter(|&&val_right| val_right == val_left)
+                    .count()
+        });
+
+        Ok(left_time_right_count.sum())
+    }
+
+    assert_eq!(31, part2(BufReader::new(TEST.as_bytes()))?);
+
+    let input_file = BufReader::new(File::open(INPUT_FILE)?);
+    let result = time_snippet!(part2(input_file)?);
+    println!("Result = {}", result);
     //endregion
 
     Ok(())
